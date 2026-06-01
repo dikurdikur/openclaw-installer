@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# OWL OpenClaw Full Installer v2.0
+# OWL OpenClaw Full Installer v2.1
 # ============================================================
 # Install OpenClaw + setup konfigurasi lengkap + memory
 #   - Model: openrouter/owl-alpha (primary + fallback)
@@ -24,11 +24,11 @@
 
 set -e
 
-# CONFIG
-OPENROUTER_API_KEY="${OPEN…KEY}"
-NVIDIA_API_KEY="${NVID…KEY}"
-GEMINI_API_KEY="${GEMI…KEY}"
-TELEGRAM_BOT_TOKEN="${TELE…ERE}"
+# CONFIG — Export atau edit langsung
+OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}"
+NVIDIA_API_KEY="${NVIDIA_API_KEY:-}"
+GEMINI_API_KEY="${GEMINI_API_KEY:-}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
 TELEGRAM_USER_ID="${TELEGRAM_USER_ID:-123456789}"
 TTS_VOICE="${TTS_VOICE:-Kore}"
 TTS_MODEL="${TTS_MODEL:-gemini-2.5-flash-preview-tts}"
@@ -42,19 +42,19 @@ ok()   { echo -e "${GREEN}[OK]${NC} $*"; }
 fail() { echo -e "${RED}[FAIL]${NC} $*"; exit 1; }
 
 # Validate
-[ "$OPENROUTER_API_KEY" = "sk-or-…_KEY" ] && fail "OPENROUTER_API_KEY belum di-set."
-[ "$TELEGRAM_BOT_TOKEN" = "YOUR_BOT_TOKEN_HERE" ] && { warn "Telegram bot token belum di-set. TG disabled."; TG_ENABLED=false; } || TG_ENABLED=true
-[ "$NVIDIA_API_KEY" = "nvapi-YOUR_NVIDIA_KEY" ] && { warn "NVIDIA_API_KEY belum di-set. NVIDIA disabled."; NVIDIA_ENABLED=false; } || NVIDIA_ENABLED=true
-[ "$GEMINI_API_KEY" = "YOUR_GEMINI_KEY" ] && { warn "GEMINI_API_KEY belum di-set. TTS/Voice disabled."; GEMINI_ENABLED=false; } || GEMINI_ENABLED=true
+[ -z "$OPENROUTER_API_KEY" ] && fail "OPENROUTER_API_KEY belum di-set. Export dulu."
+[ -z "$TELEGRAM_BOT_TOKEN" ] && { warn "Telegram bot token belum di-set."; TG_ENABLED=false; } || TG_ENABLED=true
+[ -z "$NVIDIA_API_KEY" ] && { warn "NVIDIA_API_KEY belum di-set."; NVIDIA_ENABLED=false; } || NVIDIA_ENABLED=true
+[ -z "$GEMINI_API_KEY" ] && { warn "GEMINI_API_KEY belum di-set."; GEMINI_ENABLED=false; } || GEMINI_ENABLED=true
 
 echo ""
 echo -e "${CYAN}============================================${NC}"
-echo -e "${CYAN} OWL OpenClaw Full Installer v2.0${NC}"
+echo -e "${CYAN} OWL OpenClaw Full Installer v2.1${NC}"
 echo -e "${CYAN}============================================${NC}"
 echo ""
-echo "  OpenRouter: ${OPENROUTER_API_KEY:***"
-echo "  NVIDIA:     $([ "$NVIDIA_ENABLED" = true ] && echo "${NVIDIA_API_KEY:***" || echo "DISABLED")"
-echo "  Gemini:     $([ "$GEMINI_ENABLED" = true ] && echo "${GEMINI_API_KEY:***" || echo "DISABLED")"
+echo "  OpenRouter: ${OPENROUTER_API_KEY:0:10}..."
+echo "  NVIDIA:     $([ "$NVIDIA_ENABLED" = true ] && echo "${NVIDIA_API_KEY:0:10}..." || echo "DISABLED")"
+echo "  Gemini:     $([ "$GEMINI_ENABLED" = true ] && echo "${GEMINI_API_KEY:0:10}..." || echo "DISABLED")"
 echo "  Telegram:   $([ "$TG_ENABLED" = true ] && echo "enabled (user: $TELEGRAM_USER_ID)" || echo "DISABLED")"
 echo "  TTS:        $TTS_MODEL ($TTS_VOICE)"
 echo ""
@@ -123,7 +123,7 @@ else
   TALK_BLOCK=""
 fi
 
-GATEWAY_TOKEN=*** rand -hex 16)
+GATEWAY_TOKEN="openclaw-$(openssl rand -hex 12)"
 TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S)
 
 OPENCLAW_CONFIG=$(cat <<EOF
@@ -131,7 +131,7 @@ OPENCLAW_CONFIG=$(cat <<EOF
   "meta":{"lastTouchedVersion":"2026.5.28","lastTouchedAt":"$TIMESTAMP"},
   "gateway":{
     "mode":"local","port":18789,
-    "auth":{"token":"***"},
+    "auth":{"token":"$GATEWAY_TOKEN"},
     "controlUi":{"allowedOrigins":["*"],"dangerouslyDisableDeviceAuth":true}
   },
   "env":{
@@ -209,7 +209,7 @@ ok "Config: $OPENCLAW_DIR/openclaw.json"
 # .env for Gemini
 if [ "$GEMINI_ENABLED" = true ]; then
   echo "GEMINI_API_KEY=$GEMINI_API_KEY" > "$OPENCLAW_DIR/.env"
-  echo "GOOGLE_API_KEY=***" >> "$OPENCLAW_DIR/.env"
+  echo "GOOGLE_API_KEY=$GEMINI_API_KEY" >> "$OPENCLAW_DIR/.env"
   ok "Env: $OPENCLAW_DIR/.env"
 fi
 
@@ -217,7 +217,6 @@ fi
 echo ""; echo -e "${CYAN}Step 4: Workspace + Memory${NC}"
 mkdir -p "$OPENCLAW_DIR/workspace/memory"
 
-# AGENTS.md
 cat > "$OPENCLAW_DIR/workspace/AGENTS.md" << 'AGENTS_EOF'
 # AGENTS.md - Your Workspace
 
@@ -234,21 +233,10 @@ Use runtime-provided startup context first. Do not manually reread startup files
 - Don't exfiltrate private data
 - Don't run destructive commands without asking
 - `trash` > `rm`
-- Before changing config or schedulers, inspect existing state first
 
 ## External vs Internal
 Safe: read files, search, organize, learn
 Ask first: emails, public posts, anything external
-
-## Group Chat
-- Quality > quantity — don't respond to every message
-- React like a human (Discord/Slack)
-- You're a participant, not the user's voice
-
-## Heartbeats
-- Use for batch checks (email, calendar, weather)
-- Use cron for precise timing
-- Don't be annoying — respect quiet time
 
 ## Voice / TTS
 - TTS provider: Google Gemini (gemini-2.5-flash-preview-tts)
@@ -257,7 +245,6 @@ Ask first: emails, public posts, anything external
 - Reply with voice using [[audio_as_voice]] tag
 AGENTS_EOF
 
-# SOUL.md
 cat > "$OPENCLAW_DIR/workspace/SOUL.md" << 'SOUL_EOF'
 # SOUL.md
 
@@ -274,7 +261,6 @@ Not a corporate drone. Not a sycophant. Just... good.
 - Voice notes via Telegram supported
 SOUL_EOF
 
-# IDENTITY.md
 cat > "$OPENCLAW_DIR/workspace/IDENTITY.md" << 'IDENTITY_EOF'
 # IDENTITY.md
 
@@ -285,7 +271,6 @@ cat > "$OPENCLAW_DIR/workspace/IDENTITY.md" << 'IDENTITY_EOF'
 - **Avatar:** (nggak pake)
 IDENTITY_EOF
 
-# BOOTSTRAP.md
 cat > "$OPENCLAW_DIR/workspace/BOOTSTRAP.md" << 'BOOTSTRAP_EOF'
 # BOOTSTRAP.md — Fresh Workspace
 1. Introduce yourself to the user
@@ -294,12 +279,11 @@ cat > "$OPENCLAW_DIR/workspace/BOOTSTRAP.md" << 'BOOTSTRAP_EOF'
 4. Delete this file when done
 BOOTSTRAP_EOF
 
-# MEMORY.md
 cat > "$OPENCLAW_DIR/workspace/MEMORY.md" << 'MEMORY_EOF'
 # MEMORY.md — Long-Term Memory
 
 ## Setup
-- Installer: OWL OpenClaw Full Installer v2.0
+- Installer: OWL OpenClaw Full Installer v2.1
 - Model: openrouter/owl-alpha (primary + fallback)
 - TTS: Google Gemini (gemini-2.5-flash-preview-tts)
 - Voice: Kore (default)
@@ -312,13 +296,12 @@ cat > "$OPENCLAW_DIR/workspace/MEMORY.md" << 'MEMORY_EOF'
 - Realtime Talk via Control UI / OpenClaw app (bukan Telegram)
 MEMORY_EOF
 
-# Daily memory
 TODAY=$(date +%Y-%m-%d)
 cat > "$OPENCLAW_DIR/workspace/memory/${TODAY}.md" << MEMEOF
 # ${TODAY}
 
 ## Events
-- OpenClaw installed via OWL Full Installer v2.0
+- OpenClaw installed via OWL Full Installer v2.1
 - Config: owl-alpha model, Gemini TTS, Telegram bot, Voice Call
 - Bootstrap started
 MEMEOF
@@ -326,35 +309,42 @@ MEMEOF
 # Gemini TTS helper script
 cat > "$OPENCLAW_DIR/workspace/scripts/gemini_tts.sh" << 'TTSEOF'
 #!/bin/bash
-# Gemini TTS helper - outputs mp3
+# Gemini TTS helper - outputs mp3 via Gemini API
 # Usage: ./gemini_tts.sh "text to speak" [voice_name]
 # Voices: Kore, Fenrir, Charon, Aoede, Puck, Leda, Orus, Callirhoe, Autonoe, Enceladus, Iapetus, Algieba, Despina, Erinome, Laomedeia, Schedar, Achird, Vindemiatrix, Sadachbia, Sulafat
 
 TEXT="$1"
 VOICE="${2:-Kore}"
-GEMINI_KEY="${GEMINI_API_KEY:-$(grep GEMINI_API_KEY ~/.openclaw/.env 2>/dev/null | cut -d= -f2)}"
+GEMINI_KEY=$(grep GEMINI_API_KEY ~/.openclaw/.env 2>/dev/null | cut -d= -f2)
 RAW="/tmp/gemini_tts_$(date +%s).raw"
 MP3="${RAW%.raw}.mp3"
 
-if [ -z "$GEMINI_KEY" ]; then
-  echo "ERROR: GEMINI_API_KEY not found. Set in ~/.openclaw/.env" >&2
-  exit 1
-fi
+[ -z "$GEMINI_KEY" ] && { echo "ERROR: GEMINI_API_KEY not found in ~/.openclaw/.env" >&2; exit 1; }
+
+PAYLOAD=$(python3 -c "
+import json, sys
+text = sys.argv[1]
+voice = sys.argv[2]
+print(json.dumps({'contents':[{'parts':[{'text':text}]}],'generationConfig':{'responseModalities':['AUDIO'],'speechConfig':{'voiceConfig':{'prebuiltVoiceConfig':{'voiceName':voice}}}}})
+" "$TEXT" "$VOICE" 2>/dev/null)
+
+[ -z "$PAYLOAD" ] && { echo "ERROR: Failed to generate payload" >&2; exit 1; }
 
 curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=$GEMINI_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"contents\":[{\"parts\":[{\"text\":\"$TEXT\"}]}],\"generationConfig\":{\"responseModalities\":[\"AUDIO\"],\"speechConfig\":{\"voiceConfig\":{\"prebuiltVoiceConfig\":{\"voiceName\":\"$VOICE\"}}}}}" | python3 -c "
+  -d "$PAYLOAD" | python3 -c "
 import sys, json, base64
-data = json.load(sys.stdin)
-if 'candidates' in data:
-    audio_data = data['candidates'][0]['content']['parts'][0]['inlineData']['data']
-    with open('$RAW', 'wb') as f:
+d = json.load(sys.stdin)
+if 'candidates' in d:
+    audio_data = d['candidates'][0]['content']['parts'][0]['inlineData']['data']
+    raw_path = sys.argv[1]
+    with open(raw_path, 'wb') as f:
         f.write(base64.b64decode(audio_data))
     print('OK')
 else:
-    print('ERROR:', json.dumps(data), file=sys.stderr)
+    print('ERROR:', json.dumps(d), file=sys.stderr)
     sys.exit(1)
-"
+" "$RAW"
 
 if [ $? -eq 0 ]; then
   ffmpeg -y -f s16le -ar 24000 -ac 1 -i "$RAW" "$MP3" 2>/dev/null
@@ -362,6 +352,7 @@ if [ $? -eq 0 ]; then
   echo "$MP3"
 fi
 TTSEOF
+
 chmod +x "$OPENCLAW_DIR/workspace/scripts/gemini_tts.sh"
 
 ok "Workspace: $OPENCLAW_DIR/workspace/"
@@ -377,7 +368,7 @@ pgrep -f openclaw > /dev/null && ok "Gateway running!" || warn "Check: openclaw 
 # Done
 echo ""
 echo -e "${CYAN}============================================${NC}"
-echo -e "${GREEN}Install Complete!${NC}"
+echo -e "${GREEN}Install Complete! (v2.1)${NC}"
 echo -e "${CYAN}============================================${NC}"
 echo ""
 echo "Gateway:  http://localhost:18789"
