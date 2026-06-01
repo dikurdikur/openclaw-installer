@@ -1,19 +1,35 @@
-# OWL OpenClaw Full Installer v2.0
+# OWL OpenClaw + Unitree G1 — Full Installer v2.1
 
-One-command installer untuk setup OpenClaw dari awal dengan konfigurasi lengkap + memory.
+Installer untuk setup OpenClaw AI Agent + dokumentasi integrasi dengan Unitree G1 humanoid robot.
 
-## Fitur
+## Konsep
 
-- **Model:** `openrouter/owl-alpha` (primary + fallback)
-- **Multi-provider:** OpenRouter, NVIDIA NIM
-- **Telegram Bot** — auto-setup dengan allowlist
-- **TTS via Gemini** — `gemini-2.5-flash-preview-tts` dengan voice Kore/Fenrir/dll
-- **Realtime Voice / Talk** — Gemini Live API via WebRTC
-- **Voice Call plugin** — realtime voice bridge via Google
-- **Full workspace** — AGENTS.md, SOUL.md, IDENTITY.md, MEMORY.md, daily notes
-- **Gemini TTS script** — helper buat generate suara dari terminal
+```
+┌─────────────────────────────────────────────────────┐
+│                  UNITREE G1 ROBOT                    │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  Hardware: 127cm, 35kg, 23-43 DOF             │  │
+│  │  Sensors: LiDAR + Depth Camera + IMU          │  │
+│  │  Speaker: 5W stereo                           │  │
+│  │  Mic: 4-microphone array                      │  │
+│  │  Brain: NVIDIA Jetson Orin (100 TOPS)         │  │
+│  └───────────────────────────────────────────────┘  │
+│                        ↕                             │
+│              Open SDK (Python/C++/ROS2)              │
+│                        ↕                             │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  AI Agent: OpenClaw (OWL)                     │  │
+│  │  Model: openrouter/owl-alpha                  │  │
+│  │  TTS: Gemini (gemini-2.5-flash-preview-tts)   │  │
+│  │  Voice: Kore / Fenrir / Charon / dll          │  │
+│  │  Memory: Full workspace + daily notes         │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
 
-## Quick Install
+**Intinya:** G1 itu "tubuh", OpenClaw itu "otak". Lo bisa ganti model AI-nya sesuka hari — Owl Alpha, GPT-OSS-120B, Hermes, dll.
+
+## Install OpenClaw (AI Brain)
 
 ```bash
 export OPENROUTER_API_KEY="***"
@@ -27,108 +43,100 @@ chmod +x install-openclaw.sh
 ./install-openclaw.sh
 ```
 
-## Konfigurasi
+## Unitree G1 Specs
 
-| Komponen | Provider | Model | Voice |
-|----------|----------|-------|-------|
-| Chat | OpenRouter | `openrouter/owl-alpha` | — |
-| TTS | Google Gemini | `gemini-2.5-flash-preview-tts` | Kore |
-| Realtime Talk | Google Live API | `gemini-2.5-flash-native-audio-preview-12-2025` | Kore |
+| Spec | Detail |
+|------|--------|
+| Height | 127-132 cm |
+| Weight | 35 kg |
+| DOF | 23 (basic) - 43 (EDU) |
+| Speed | 2 m/s jalan, 4 m/s lari |
+| Knee Torque | 90-120 Nm |
+| Arm Payload | 2-3 kg |
+| Battery | 9000mAh, ~2 jam |
+| Sensors | LIVOX MID360 LiDAR + Intel RealSense D435 |
+| Audio | 4-mic array + 5W stereo speaker |
+| CPU | 8-core + NVIDIA Jetson Orin 100 TOPS |
+| Price | $16,000 - $73,900 |
 
-## TTS Voices
+## G1 AI Capabilities
 
-Kore (default), Fenrir, Charon, Aoede, Puck, Leda, Orus, Callirhoe, Autonoe, Enceladus, Iapetus, Algieba, Despina, Erinome, Laomedeia, Schedar, Achird, Vindemiatrix, Sadachbia, Sulafat
+### Yang Sudah Built-in
+- **OmniXtreme** — High-dynamic motion control (backflip, kungfu, parkour, breakdance)
+- **UnifoLM-VLA-0** — Vision-Language-Action model (open-source, di GitHub)
+- **Reinforcement Learning** — Belajar dari trial & error
+- **Real-time Sensor Fusion** — LiDAR + camera + IMU
 
-Ganti dengan `export TTS_VOICE=Fenrir` sebelum run installer.
+### Yang Bisa Ditambah (via Open SDK)
+- **LLM Integration** — Ollama, OpenRouter, OpenAI, dll
+- **Speech-to-Text** — Whisper (offline)
+- **Text-to-Speech** — XTTS-v2 (bisa clone suara)
+- **Custom AI Models** — Training sendiri, deploy ke Jetson Orin
+- **ROS2** — Full robot operating system
 
-## Struktur Workspace
+## Integrasi OpenClaw + G1
 
+### Opsi 1: G1 Jadi "Tubuh" OpenClaw
 ```
-~/.openclaw/
-├── openclaw.json          # Main config
-├── .env                   # GEMINI_API_KEY
-├── workspace/
-│   ├── AGENTS.md          # Agent instructions
-│   ├── SOUL.md            # Personality
-│   ├── IDENTITY.md        # Bot identity
-│   ├── MEMORY.md          # Long-term memory
-│   ├── BOOTSTRAP.md       # First-run setup
-│   ├── memory/
-│   │   └── YYYY-MM-DD.md  # Daily notes
-│   └── scripts/
-│       └── gemini_tts.sh  # TTS helper
-```
-
-## TTS Script Usage
-
-```bash
-cd ~/.openclaw/workspace/scripts
-
-# Basic
-./gemini_tts.sh "Halo bro, gue OWL"
-
-# Custom voice
-./gemini_tts.sh "Halo bro" Fenrir
-
-# Output: /tmp/gemini_tts_XXXXX.mp3
+Lo ngomong → Telegram → OpenClaw (otak) → Kirim command → G1 (tubuh) gerak
 ```
 
-## Telegram Voice Note
-
-- Telegram bot auto-transcribe voice note yang masuk
-- Agent bisa reply pake suara via `[[audio_as_voice]]` tag
-- Android/iOS: klik icon mic di keyboard Telegram
-- NOTE: Telegram tidak support realtime voice call (pake Control UI / OpenClaw app)
-
-## Manual Setup
-
-1. `npm install -g openclaw`
-2. Copy `openclaw-config-template.json` → `~/.openclaw/openclaw.json`
-3. Edit API keys
-4. `echo "GEMINI_API_KEY=***" > ~/.openclaw/.env`
-5. `openclaw gateway start`
-
-## Requirements
-
-- Ubuntu/Debian (Linux-based)
-- Node.js 22+ (auto-installed)
-- ffmpeg (auto-installed)
-- API keys: OpenRouter, Gemini, Telegram Bot
-
-## Troubleshooting
-
-### TTS Error: API key not valid
-Gunakan model `gemini-2.5-flash-preview-tts` (bukan `gemini-3.1-flash-tts-preview`).
-Model 3.1 mungkin belum tersedia untuk semua key.
-
-### Voice note tidak terima
-- Pastikan bot Telegram sudah di-start (`/start`)
-- Kirim dari HP (bukan desktop/web)
-- Cek permission microphone di HP
-
-### Gateway tidak start
-```bash
-openclaw gateway status
-openclaw gateway restart
+### Opsi 2: G1 Jalan Mandiri
+```
+G1 sensor → OpenClaw lokal di Jetson Orin → Proses → Gerak
 ```
 
-## Changelog
+### Opsi 3: Hybrid
+```
+G1 handle real-time motion (OmniXtreme)
+OpenClaw handle reasoning + conversation (Owl Alpha)
+Keduanya jalan bareng via ROS2
+```
 
-### v2.0
-- Added full workspace setup (AGENTS.md, SOUL.md, IDENTITY.md, MEMORY.md)
-- Added daily memory notes
-- Added Gemini TTS helper script
-- Added voice/TTS documentation
-- Improved config template
+## Voice Stack untuk G1
 
-### v1.1
-- Fix TTS model ke gemini-2.5-flash-preview-tts
-- Fix API key validation
-- Simplified script
+```
+Lo ngomong
+    ↓
+4-mic array (G1)
+    ↓
+Whisper STT (lokal di Jetson Orin)
+    ↓
+OpenClaw Agent (Owl Alpha via OpenRouter)
+    ↓
+Gemini TTS (gemini-2.5-flash-preview-tts)
+    ↓
+5W speaker (G1) → "Halo bro!"
+```
 
-### v1.0
-- Initial release
+## Beli G1
+
+- **Official:** https://shop.unitree.com
+- **US:** https://www.robotshop.com/products/unitree-g1-humanoid-robot-us
+- **EU:** https://www.generationrobots.com/en/404241-g1-humanoid-robot.html
+- **Global:** https://robostore.com/products/unitree-g1-robotic-humanoid
+
+## Video Demo
+
+1. [Kungfu Kid V6.0 — Full Martial Arts + Backflip](https://www.youtube.com/watch?v=mwYQENi4jHk)
+2. [CES 2026 — Dancing + Backflips](https://www.youtube.com/watch?v=mePC8kkkwdA)
+3. [Standing Side Flip vs Boston Dynamics Atlas](https://www.youtube.com/watch?v=ieuJFbhXO7o)
+4. [Spring Festival Gala 2026 — Group Martial Arts](https://www.youtube.com/watch?v=9TuOoXncAF4)
+5. [Short Demo](https://www.youtube.com/shorts/nO7iORxO4FY)
+
+## OpenClaw History
+
+OpenClaw (G1's AI brain) sebelumnya bernama:
+- **Warelay** (Nov 2025)
+- **Clawdbot** (Jan 2026)
+- **Moltbot** (27 Jan 2026)
+- **OpenClaw** (30 Jan 2026)
+
+Dikembangkan oleh Peter Steinberger (Austria). Open-source, self-hosted AI agent.
 
 ## Credits
 
-Setup by OWL — OpenClaw AI Agent
+- OWL — OpenClaw AI Agent
+- Unitree Robotics — G1 Humanoid
+- OpenRouter — AI Model Marketplace
+- Google Gemini — TTS Provider
