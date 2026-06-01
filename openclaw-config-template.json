@@ -1,0 +1,189 @@
+{
+  "_comment": "OpenClaw Config — Edit API keys dan values sesuai kebutuhan",
+  "_usage": "Simpan sebagai ~/.openclaw/openclaw.json",
+
+  "meta": {
+    "lastTouchedVersion": "2026.5.28",
+    "lastTouchedAt": "TIMESTAMP"
+  },
+
+  "gateway": {
+    "mode": "local",
+    "port": 18789,
+    "auth": {
+      "token": "GENERATE_RANDOM_TOKEN"
+    },
+    "controlUi": {
+      "allowedOrigins": ["*"],
+      "dangerouslyDisableDeviceAuth": true
+    }
+  },
+
+  "env": {
+    "OPENROUTER_API_KEY": "YOUR_OPENROUTER_API_KEY",
+    "NVIDIA_API_KEY": "YOUR_NVIDIA_API_KEY"
+  },
+
+  "auth": {
+    "profiles": {
+      "openrouter:default": { "provider": "openrouter", "mode": "api_key" },
+      "nvidia:default": { "provider": "nvidia", "mode": "api_key" }
+    },
+    "order": {
+      "openrouter": ["openrouter:default"],
+      "nvidia": ["nvidia:default"]
+    }
+  },
+
+  "models": {
+    "providers": {
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "api": "openai-completions",
+        "models": []
+      },
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "api": "openai-completions",
+        "timeoutSeconds": 300,
+        "models": []
+      }
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "model": {
+        "primary": "openrouter/owl-alpha",
+        "fallbacks": ["openrouter/owl-alpha"]
+      },
+      "models": {
+        "openrouter/owl-alpha": { "alias": "Owl Alpha" },
+        "openrouter/nousresearch/hermes-3-llama-3.1-405b": { "alias": "Hermes 3 405B" },
+        "nvidia/openai/gpt-oss-120b": { "alias": "GPT-OSS 120B" },
+        "nvidia/meta/llama-3.3-70b-instruct": { "alias": "Llama 3.3 70B" }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "model": {
+          "primary": "openrouter/owl-alpha",
+          "fallbacks": ["openrouter/owl-alpha"]
+        }
+      },
+      {
+        "id": "coder",
+        "model": {
+          "primary": "openrouter/owl-alpha",
+          "fallbacks": ["openrouter/owl-alpha"]
+        }
+      }
+    ]
+  },
+
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "dmPolicy": "allowlist",
+      "allowFrom": ["YOUR_TELEGRAM_USER_ID"],
+      "groups": { "*": { "requireMention": true } },
+      "groupAllowFrom": ["YOUR_TELEGRAM_USER_ID"]
+    }
+  },
+
+  "commands": {
+    "ownerAllowFrom": ["telegram:YOUR_TELEGRAM_USER_ID"],
+    "useAccessGroups": false
+  },
+
+  "tools": {
+    "exec": { "security": "full", "ask": "off" },
+    "elevated": { "enabled": true },
+    "profile": "full"
+  },
+
+  "plugins": {
+    "entries": {
+      "openrouter": { "enabled": true },
+      "nvidia": { "enabled": true },
+      "voice-call": {
+        "enabled": true,
+        "config": {
+          "realtime": {
+            "enabled": true,
+            "provider": "google",
+            "providers": {
+              "google": {
+                "model": "gemini-2.5-flash-native-audio-preview-12-2025",
+                "speakerVoice": "Kore"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "skills": {
+    "entries": {
+      "godmode": { "enabled": true },
+      "coding-agent": { "enabled": false },
+      "gemini": { "enabled": false },
+      "sag": { "enabled": false },
+      "voice-call": { "enabled": false }
+    }
+  },
+
+  "messages": {
+    "groupChat": {
+      "visibleReplies": "message_tool",
+      "mentionPatterns": ["@openclaw", "@OpenClawBot"]
+    },
+    "tts": {
+      "provider": "google",
+      "providers": {
+        "google": {
+          "model": "gemini-2.5-flash-preview-tts",
+          "speakerVoice": "Kore"
+        }
+      }
+    }
+  },
+
+  "_comment_tts_note": "NOTE: gemini-3.1-flash-tts-preview belum stabil di semua key. Pakai gemini-2.5-flash-preview-tts yang teruji.",
+
+  "talk": {
+    "realtime": {
+      "provider": "google",
+      "providers": {
+        "google": {
+          "model": "gemini-2.5-flash-native-audio-preview-12-2025",
+          "speakerVoice": "Kore"
+        }
+      },
+      "mode": "realtime",
+      "transport": "webrtc",
+      "brain": "agent-consult"
+    }
+  },
+
+  "wizard": {
+    "lastRunAt": "TIMESTAMP",
+    "lastRunVersion": "2026.5.28",
+    "lastRunCommand": "install",
+    "lastRunMode": "local"
+  },
+
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "godmode": { "enabled": true }
+      }
+    }
+  }
+}
